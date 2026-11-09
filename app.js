@@ -576,12 +576,12 @@ function bindExport() {
 
 /* ---------- projetos e galeria ---------- */
 var EGGS = [
-  { q: '“There you are. I’ve been looking for you.”', s: 'A Court of Thorns and Roses' },
-  { q: '“We need hope, or else we cannot endure.”', s: 'A Court of Thorns and Roses' },
-  { q: '“Be glad of your human heart.”', s: 'A Court of Thorns and Roses' },
-  { q: '“I was a survivor, and I was strong.”', s: 'A Court of Mist and Fury' },
-  { q: '“To the stars who listen.”', s: 'A Court of Mist and Fury' },
-  { q: 'O Suriel só diz a verdade a quem for esperto o bastante para prendê-lo.', s: 'homenagem ao Suriel · não é citação do livro' }
+  { q: '“There you are. I’ve been looking for you.”', k: 'calanmai', w: 'Rhysand, na noite de Calanmai', s: 'A Court of Thorns and Roses' },
+  { q: '“We need hope, or else we cannot endure.”', k: 'esperanca', w: 'O pai de Feyre, no mundo humano', s: 'A Court of Thorns and Roses' },
+  { q: '“Be glad of your human heart.”', k: 'montanha', w: 'Rhysand, Sob a Montanha', s: 'A Court of Thorns and Roses' },
+  { q: '“I was a survivor, and I was strong.”', k: 'pincel', w: 'Feyre', s: 'A Court of Mist and Fury' },
+  { q: '“To the stars who listen.”', k: 'brinde', w: 'Rhysand, num brinde na Corte do Verão', s: 'A Court of Mist and Fury' },
+  { q: 'O Suriel só diz a verdade a quem for esperto o bastante para prendê-lo.', k: 'suriel', w: 'Homenagem ao Suriel', s: 'Não é citação do livro' }
 ];
 var EGG_QUOTE = EGGS[0].q;
 function pickEgg(random) {
@@ -598,7 +598,9 @@ function greeting() {
 }
 function showEgg(random) {
   var egg = $('egg'), box = $('eggStars'), ev = pickEgg(random);
-  $('eggQ').textContent = ev.q; $('eggSrc').textContent = ev.s;
+  $('eggQ').textContent = ev.q; $('eggWho').textContent = ev.w; $('eggSrc').textContent = ev.s;
+  $('eggScene').innerHTML = window.EGG_SCENES && EGG_SCENES[ev.k] ? EGG_SCENES[ev.k]() : '';
+  box.style.display = ev.k === 'esperanca' || ev.k === 'montanha' || ev.k === 'suriel' ? 'none' : '';
   if (!box.firstChild) {
     for (var i = 0; i < 70; i++) {
       var st = document.createElement('i'), sz = 1 + Math.random() * 2.4;
@@ -608,7 +610,7 @@ function showEgg(random) {
   }
   egg.classList.remove('hidden');
   requestAnimationFrame(function () { requestAnimationFrame(function () { egg.classList.add('on'); }); });
-  clearTimeout(showEgg.t); showEgg.t = setTimeout(hideEgg, 12000);
+  clearTimeout(showEgg.t); showEgg.t = setTimeout(hideEgg, 30000);
 }
 function hideEgg() {
   var egg = $('egg'); egg.classList.remove('on');
@@ -621,7 +623,8 @@ function bindEgg() {
     taps = taps.filter(function (t) { return now - t < 4000; });
     if (taps.length >= 5) { taps = []; showEgg(false); }
   });
-  $('egg').addEventListener('click', function () { clearTimeout(showEgg.t); hideEgg(); });
+  $('eggX').addEventListener('click', function (e) { e.stopPropagation(); clearTimeout(showEgg.t); hideEgg(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('egg').classList.contains('hidden')) { clearTimeout(showEgg.t); hideEgg(); } });
 }
 function showScreen(name) {
   if (name === 'home') $('greet').textContent = greeting();

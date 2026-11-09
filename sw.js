@@ -1,8 +1,8 @@
 // Service worker: guarda o app no aparelho para abrir offline e recebe imagens do menu "Compartilhar".
 // Não envia nada para a internet.
-var CACHE = 'grimorio-v9';
+var CACHE = 'grimorio-v11';
 var SHARED = 'grimorio-shared';
-var FILES = ['./', 'index.html', 'style.css', 'engine.js', 'export.js', 'app.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
+var FILES = ['./', 'index.html', 'style.css', 'engine.js','scenes.js', 'export.js', 'app.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));

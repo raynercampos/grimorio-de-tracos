@@ -212,17 +212,19 @@
 </div>
 <div class="uiz" id="uiz"><button id="uiMinus" aria-label="Diminuir interface">A−</button><button id="uiPlus" aria-label="Aumentar interface">A+</button></div>
 <div id="egg" class="egg hidden" role="dialog" aria-label="Surpresa">
+  <div class="scene" id="eggScene"></div>
   <div class="stars" id="eggStars"></div>
-  <p class="q" id="eggQ">“There you are. I’ve been looking for you.”</p>
+  <button class="eggx" id="eggX" aria-label="Fechar">✕</button>
+  <p class="q" id="eggQ"></p>
   <div class="orn">✦</div>
-  <small class="src" id="eggSrc">ACOTAR</small>
-  <small>toque para fechar</small>
+  <div class="cred"><span class="who" id="eggWho"></span><span class="src" id="eggSrc"></span></div>
 </div>
 
 <input type="file" id="fileCam" accept="image/*" capture="environment" hidden>
 <input type="file" id="fileGal" accept="image/*" hidden>
 
 <script src="engine.js"></script>
+<script src="scenes.js"></script>
 <script src="export.js"></script>
 <script src="app.js"></script>
 </body>
