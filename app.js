@@ -618,7 +618,7 @@ function hideEgg() {
 }
 function bindEgg() {
   var taps = [];
-  $('emblem').addEventListener('click', function () {
+  $('emblem').addEventListener('pointerup', function () {
     var now = Date.now(); taps.push(now);
     taps = taps.filter(function (t) { return now - t < 4000; });
     if (taps.length >= 5) { taps = []; showEgg(false); }
