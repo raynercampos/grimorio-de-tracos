@@ -588,7 +588,7 @@ var EGG_QUOTE = EGGS[0].q;
 function pickEgg(random) {
   var i = 0;
   try { i = parseInt(localStorage.getItem('grimorio.egg'), 10) || 0; } catch (e) { }
-  if (random) i = Math.floor(Math.random() * EGGS.length);
+  if (random) return EGGS[Math.floor(Math.random() * EGGS.length)];
   i = ((i % EGGS.length) + EGGS.length) % EGGS.length;
   try { localStorage.setItem('grimorio.egg', String(i + 1)); } catch (e) { }
   return EGGS[i];
