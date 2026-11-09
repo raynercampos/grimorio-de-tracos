@@ -1,4 +1,4 @@
-# Decalquei
+# Grimório de Traços
 
 Transforma fotos em decalques simplificados para pintar em tela. Funciona offline e pode ser instalado no Android (PWA).
 
@@ -11,7 +11,7 @@ Transforma fotos em decalques simplificados para pintar em tela. Funciona offlin
 
 ## Publicar (GitHub Pages)
 
-Settings → Pages → Deploy from a branch → `main` / `(root)`. O endereço será `https://<usuario>.github.io/decalquei/`.
+Settings → Pages → Deploy from a branch → `main` / `(root)`. O endereço será `https://<usuario>.github.io/<repositório>/`.
 
 ## Instalar no Android
 

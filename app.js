@@ -1,5 +1,5 @@
 'use strict';
-/* Decalquei — interface e lógica do app. */
+/* Grimório de Traços — interface e lógica do app. */
 var $ = function (id) { return document.getElementById(id); };
 
 var DEF = {
@@ -11,13 +11,13 @@ var DEF = {
 var HEAVY = ['mode', 'detail', 'smooth', 'clean', 'thick', 'tones', 'toneStyle', 'k'];
 var SIZES = [[20, 30], [24, 30], [30, 40], [40, 50], [50, 70], [60, 80], [70, 100], [80, 100], [30, 30], [40, 40], [50, 50], [60, 60], [21, 29.7, 'A4'], [29.7, 42, 'A3']];
 var BUILTIN_PRESETS = {
-  'Contorno limpo': { mode: 'contorno', detail: 35, smooth: 45, clean: 45, thick: 2 },
-  'Contorno detalhado': { mode: 'contorno', detail: 70, smooth: 25, clean: 25, thick: 1.5 },
-  'Esboço a lápis': { mode: 'esboco', detail: 55, smooth: 35, clean: 30 },
+  'Silhueta limpa': { mode: 'contorno', detail: 35, smooth: 45, clean: 45, thick: 2 },
+  'Silhueta detalhada': { mode: 'contorno', detail: 70, smooth: 25, clean: 25, thick: 1.5 },
+  'Carvão': { mode: 'esboco', detail: 55, smooth: 35, clean: 30 },
   'Sombras em hachura': { mode: 'sombras', detail: 45, smooth: 40, clean: 40, thick: 2, tones: 3, toneStyle: 'hachura' },
   'Sombras em manchas': { mode: 'sombras', detail: 45, smooth: 45, clean: 45, thick: 2, tones: 4, toneStyle: 'manchas' },
-  'Pintura por números (12 cores)': { mode: 'manchas', k: 12, smooth: 40, clean: 40, thick: 1.5, numbers: true, fill: 'nenhum' },
-  'Poucas manchas (pôster)': { mode: 'manchas', k: 5, smooth: 55, clean: 60, thick: 2.5, numbers: false, fill: 'cores' }
+  'Vitral (12 cores)': { mode: 'manchas', k: 12, smooth: 40, clean: 40, thick: 1.5, numbers: true, fill: 'nenhum' },
+  'Vitral simples (5 cores)': { mode: 'manchas', k: 5, smooth: 55, clean: 60, thick: 2.5, numbers: false, fill: 'cores' }
 };
 
 var S = {
@@ -35,7 +35,7 @@ function toast(msg, ms) {
 function busy(msg) { $('busyMsg').textContent = msg || 'Processando…'; $('busy').classList.remove('hidden'); }
 function unbusy() { $('busy').classList.add('hidden'); }
 function nextFrame() { return new Promise(function (r) { setTimeout(r, 30); }); }
-function fileBase() { return (S.name || 'decalque').replace(/[^\w\-áéíóúâêôãõç ]+/gi, '').trim().replace(/\s+/g, '-') || 'decalque'; }
+function fileBase() { return (S.name || 'grimorio').replace(/[^\w\-áéíóúâêôãõç ]+/gi, '').trim().replace(/\s+/g, '-') || 'decalque'; }
 
 /* ---------- worker ---------- */
 var WORKER_FUNCS = ['gaussKernel', 'blurDirect', 'boxesForGauss', 'boxPass', 'blurGray', 'toGray', 'canny', 'removeSmall', 'dilate',
@@ -80,7 +80,7 @@ function runJob(msg, kind) {
 /* ---------- banco local (galeria) ---------- */
 function dbOpen() {
   return new Promise(function (res, rej) {
-    var rq = indexedDB.open('decalquei', 1);
+    var rq = indexedDB.open('grimorio', 1);
     rq.onupgradeneeded = function () { rq.result.createObjectStore('projetos', { keyPath: 'id' }); };
     rq.onsuccess = function () { res(rq.result); };
     rq.onerror = function () { rej(rq.error); };
@@ -383,11 +383,11 @@ function syncUI() {
   applySize();
 }
 function saveLast() {
-  try { localStorage.setItem('decalquei.last', JSON.stringify({ params: S.params, sizeKey: S.sizeKey, land: S.land, longcm: S.longcm, wcm: S.wcm, hcm: S.hcm, deliver: $('deliver').value, quality: $('quality').value })); } catch (e) { }
+  try { localStorage.setItem('grimorio.last', JSON.stringify({ params: S.params, sizeKey: S.sizeKey, land: S.land, longcm: S.longcm, wcm: S.wcm, hcm: S.hcm, deliver: $('deliver').value, quality: $('quality').value })); } catch (e) { }
 }
 function loadLast() {
   try {
-    var o = JSON.parse(localStorage.getItem('decalquei.last') || 'null');
+    var o = JSON.parse(localStorage.getItem('grimorio.last') || 'null');
     if (!o) return;
     S.params = Object.assign({}, DEF, o.params); S.sizeKey = o.sizeKey || S.sizeKey; S.land = !!o.land; S.longcm = o.longcm || 50;
     S.wcm = o.wcm || S.wcm; S.hcm = o.hcm || S.hcm;
@@ -448,7 +448,7 @@ function bindUI() {
   $('projName').addEventListener('input', function () { S.name = $('projName').value; S.dirty = true; });
 
   // modelos
-  function userPresets() { try { return JSON.parse(localStorage.getItem('decalquei.presets') || '{}'); } catch (e) { return {}; } }
+  function userPresets() { try { return JSON.parse(localStorage.getItem('grimorio.presets') || '{}'); } catch (e) { return {}; } }
   function fillPresets() {
     var u = userPresets(), html = '<option value="">— escolher —</option>';
     Object.keys(BUILTIN_PRESETS).forEach(function (n) { html += '<option value="b:' + n + '">' + n + '</option>'; });
@@ -464,13 +464,13 @@ function bindUI() {
   });
   $('presetSave').addEventListener('click', function () {
     var n = (prompt('Nome do modelo:') || '').trim(); if (!n) return;
-    var u = userPresets(); u[n] = Object.assign({}, S.params); localStorage.setItem('decalquei.presets', JSON.stringify(u));
+    var u = userPresets(); u[n] = Object.assign({}, S.params); localStorage.setItem('grimorio.presets', JSON.stringify(u));
     fillPresets(); $('presetSel').value = 'u:' + n; toast('Modelo salvo.');
   });
   $('presetDel').addEventListener('click', function () {
     var v = $('presetSel').value;
     if (!v || v[0] !== 'u') { toast('Escolha um modelo seu (marcado com ★) para excluir.'); return; }
-    var u = userPresets(); delete u[v.slice(2)]; localStorage.setItem('decalquei.presets', JSON.stringify(u)); fillPresets(); toast('Modelo excluído.');
+    var u = userPresets(); delete u[v.slice(2)]; localStorage.setItem('grimorio.presets', JSON.stringify(u)); fillPresets(); toast('Modelo excluído.');
   });
 }
 
@@ -529,7 +529,39 @@ function bindExport() {
 }
 
 /* ---------- projetos e galeria ---------- */
+var EGG_QUOTE = '“There you are. I’ve been looking for you.”';
+function greeting() {
+  var h = new Date().getHours();
+  return (h >= 5 && h < 12 ? 'Bom dia' : (h >= 12 && h < 18 ? 'Boa tarde' : 'Boa noite')) + ', Bárbara.';
+}
+function showEgg() {
+  var egg = $('egg'), box = $('eggStars');
+  if (!box.firstChild) {
+    for (var i = 0; i < 70; i++) {
+      var st = document.createElement('i'), sz = 1 + Math.random() * 2.4;
+      st.style.cssText = 'left:' + (Math.random() * 100) + '%;top:' + (Math.random() * 100) + '%;width:' + sz + 'px;height:' + sz + 'px;animation-delay:' + (Math.random() * 3).toFixed(2) + 's;animation-duration:' + (2.2 + Math.random() * 2.5).toFixed(2) + 's';
+      box.appendChild(st);
+    }
+  }
+  egg.classList.remove('hidden');
+  requestAnimationFrame(function () { requestAnimationFrame(function () { egg.classList.add('on'); }); });
+  clearTimeout(showEgg.t); showEgg.t = setTimeout(hideEgg, 12000);
+}
+function hideEgg() {
+  var egg = $('egg'); egg.classList.remove('on');
+  setTimeout(function () { egg.classList.add('hidden'); }, 900);
+}
+function bindEgg() {
+  var taps = [];
+  $('emblem').addEventListener('click', function () {
+    var now = Date.now(); taps.push(now);
+    taps = taps.filter(function (t) { return now - t < 4000; });
+    if (taps.length >= 5) { taps = []; showEgg(); }
+  });
+  $('egg').addEventListener('click', function () { clearTimeout(showEgg.t); hideEgg(); });
+}
 function showScreen(name) {
+  if (name === 'home') $('greet').textContent = greeting();
   $('home').classList.toggle('hidden', name !== 'home');
   $('editor').classList.toggle('hidden', name !== 'editor');
 }
@@ -543,14 +575,14 @@ function thumbOf() {
 async function saveProject(silent) {
   if (!S.src) return;
   if (!S.id) S.id = 'p' + Date.now();
-  if (!S.name) S.name = 'Decalque ' + new Date().toLocaleDateString('pt-BR');
+  if (!S.name) S.name = 'Traço de ' + new Date().toLocaleDateString('pt-BR');
   $('projName').value = S.name;
   await dbPut({
     id: S.id, nome: S.name, data: Date.now(), thumb: thumbOf(), img: S.origBlob, rot: S.rot, crop: S.crop,
     wcm: S.wcm, hcm: S.hcm, sizeKey: S.sizeKey, land: S.land, longcm: S.longcm, params: S.params
   });
   S.dirty = false;
-  if (!silent) toast('Salvo na galeria.');
+  if (!silent) toast('Guardado no grimório.');
 }
 async function openEditor(isNew) {
   showScreen('editor'); history.pushState({ ed: 1 }, '');
@@ -560,11 +592,13 @@ async function openEditor(isNew) {
   if (isNew) S.dirty = true;
 }
 async function startWithBlob(blob) {
-  busy('Abrindo a imagem…'); await nextFrame();
+  var rare = Math.random() < 1 / 20;
+  busy(rare ? EGG_QUOTE : 'Abrindo a imagem…'); await nextFrame();
   try {
     await loadBlob(blob);
+    if (rare) await new Promise(function (r) { setTimeout(r, 2600); });
     S.rot = 0; buildSrc(); S.crop = { cx: 0.5, cy: 0.5, zoom: 1 }; S.id = null; S.result = null; S.composed = null; S.palette = [];
-    S.name = 'Decalque ' + new Date().toLocaleDateString('pt-BR');
+    S.name = 'Traço de ' + new Date().toLocaleDateString('pt-BR');
     if (S.sizeKey !== 'foto' && S.sizeKey !== 'custom') S.land = S.src.width > S.src.height;
     else if (S.sizeKey === 'custom' && (S.src.width > S.src.height) !== (S.wcm > S.hcm)) { var t = S.wcm; S.wcm = S.hcm; S.hcm = t; }
     applySize();
@@ -594,7 +628,7 @@ async function loadGallery() {
   try { list = await dbAll(); } catch (e) { }
   list.sort(function (a, b) { return b.data - a.data; });
   var g = $('gallery');
-  if (!list.length) { g.innerHTML = '<p class="empty">Nenhum decalque salvo ainda.</p>'; return; }
+  if (!list.length) { g.innerHTML = '<p class="empty">O grimório ainda está vazio.</p>'; return; }
   g.innerHTML = '';
   list.forEach(function (p) {
     var d = document.createElement('div'); d.className = 'proj';
@@ -653,14 +687,14 @@ function bindHome() {
 async function checkShared() {
   if (location.search.indexOf('shared=1') < 0) return;
   try {
-    var c = await caches.open('decalquei-shared'), key = new URL('shared-image', document.baseURI).href;
+    var c = await caches.open('grimorio-shared'), key = new URL('shared-image', document.baseURI).href;
     var r = await c.match(key);
     history.replaceState(null, '', location.pathname);
     if (r) { var b = await r.blob(); await c.delete(key); await startWithBlob(b); }
   } catch (e) { toast('Não consegui abrir a imagem compartilhada.'); }
 }
 function init() {
-  loadLast(); bindUI(); bindExport(); bindHome();
+  loadLast(); bindUI(); bindExport(); bindHome(); bindEgg();
   if (S.sizeKey !== 'custom' && S.sizeKey !== 'foto' && !SIZES.some(function (s) { return s[0] + 'x' + s[1] === S.sizeKey; })) S.sizeKey = '40x50';
   applySize(); syncUI(); loadGallery(); checkShared();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () { });

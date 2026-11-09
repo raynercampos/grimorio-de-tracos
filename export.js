@@ -1,4 +1,4 @@
-/* Decalquei — exportação: gerador de PDF próprio, folhas A4 em tamanho real, legenda e paleta. */
+/* Grimório de Traços — exportação: gerador de PDF próprio, folhas A4 em tamanho real, legenda e paleta. */
 var DPI = 200, MM = DPI / 25.4;
 
 function canvasBlob(cv, type, q) {
@@ -125,7 +125,7 @@ function renderTile(comp, plan, c, r, idx, total) {
   ctx.fillStyle = '#555'; ctx.font = 'bold ' + (3.4 * MM) + 'px sans-serif'; ctx.textAlign = 'left';
   ctx.fillText('Folha ' + idx + ' de ' + total + '  ·  coluna ' + (c + 1) + ', linha ' + (r + 1), m, 6.2 * MM);
   ctx.textAlign = 'right'; ctx.fillStyle = '#888'; ctx.font = (3 * MM) + 'px sans-serif';
-  ctx.fillText('Decalquei', plan.pw * MM - m, 6.2 * MM);
+  ctx.fillText('Grimório de Traços', plan.pw * MM - m, 6.2 * MM);
   return { cv: cv, wmm: plan.pw, hmm: plan.ph };
 }
 function renderIndexPage(plan, wcm, hcm) {

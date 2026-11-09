@@ -1,7 +1,7 @@
 // Service worker: guarda o app no aparelho para abrir offline e recebe imagens do menu "Compartilhar".
 // Não envia nada para a internet.
-var CACHE = 'decalquei-v1';
-var SHARED = 'decalquei-shared';
+var CACHE = 'grimorio-v1';
+var SHARED = 'grimorio-shared';
 var FILES = ['./', 'index.html', 'style.css', 'engine.js', 'export.js', 'app.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', function (e) {
