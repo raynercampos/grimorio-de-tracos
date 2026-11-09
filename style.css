@@ -148,3 +148,15 @@ input[type=number] { width: 4.625rem; }
 
 .nudge { flex: 0 0 auto; width: 1.7rem; height: 1.7rem; padding: 0; border: 1px solid var(--gold-d); border-radius: 50%; background: var(--card); color: var(--gold); font: inherit; font-size: 1.1rem; line-height: 1; }
 .nudge:active { background: var(--rose); color: var(--ink); }
+
+.stagetools { position: absolute; left: 0.75rem; top: 0.625rem; display: flex; gap: 0.375rem; z-index: 3; }
+.stagetools button { width: 2.4rem; height: 2.4rem; border: 1px solid var(--gold-d); border-radius: 50%; background: rgba(18,13,22,.88); color: var(--gold); font: inherit; font-size: 1.15rem; line-height: 1; }
+.stagetools button:disabled { opacity: .35; }
+.paint { position: fixed; inset: 0; z-index: 40; background: #0b0810; touch-action: none; }
+.paint canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+.ptools { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 0.375rem; padding: 0.625rem 0.625rem calc(env(safe-area-inset-bottom) + 0.625rem);
+  background: linear-gradient(transparent, rgba(11,8,16,.92) 40%); transition: opacity .25s; }
+.ptools.off { opacity: 0; pointer-events: none; }
+.ptools button { flex: 1; border: 1px solid var(--gold-d); border-radius: 62.44rem; padding: 0.5rem 0.25rem; background: rgba(28,22,36,.92); color: var(--muted); font: inherit; font-size: 0.875rem; }
+.ptools button.on { color: var(--gold); border-color: var(--gold); }
+.egg .src { display: block; margin-top: 0.5rem; letter-spacing: .08em; }

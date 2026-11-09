@@ -121,6 +121,23 @@ function smoothMask(mask, w, h, sigma, thr) {
   return out;
 }
 
+/* ---------- camadas por tom: contorno de cada faixa de tom ---------- */
+function toneBandLayers(lev, w, h, nL, thickPx) {
+  var out = [], n = w * h, b, x, y, i;
+  for (b = 0; b < nL; b++) {
+    var m = new Uint8Array(n);
+    for (y = 1; y < h - 1; y++) {
+      for (x = 1; x < w - 1; x++) {
+        i = y * w + x;
+        if (lev[i] === b && (lev[i - 1] !== b || lev[i + 1] !== b || lev[i - w] !== b || lev[i + w] !== b)) m[i] = 1;
+      }
+    }
+    var name = b === 0 ? 'Sombras' : (b === nL - 1 ? 'Luzes' : (nL === 3 ? 'Meios-tons' : 'Tom intermediário ' + b));
+    out.push({ name: name, ink: maskToInk(m, w, h, thickPx) });
+  }
+  return out;
+}
+
 /* ---------- bordas (Canny) ---------- */
 function canny(gray, w, h, sigma, keepFrac, minC, loRatio) {
   var g = blurGray(gray, w, h, sigma);
@@ -516,6 +533,7 @@ function runPipeline(rgba, w, h, p) {
   }
   removeSmall(edges, w, h, minLen);
   var ink = maskToInk(edges, w, h, p.thick * sc);
+  var lineInk = p.layers ? ink.slice() : null;
   if (p.mode === 'sombras') {
     var nL = p.tones;
     var lev = toneLevels(gray, w, h, (2 + p.smooth / 100 * 5) * sc, nL);
@@ -523,5 +541,12 @@ function runPipeline(rgba, w, h, p) {
     var tone = toneInk(lev, w, h, nL, p.toneStyle, sc, minSpot);
     for (var i = 0; i < ink.length; i++) if (tone[i] > ink[i]) ink[i] = tone[i];
   }
-  return { w: w, h: h, ink: ink };
+  var res = { w: w, h: h, ink: ink };
+  if (p.layers) {
+    var nB = Math.max(2, Math.min(6, p.tones || 3));
+    var lv = toneLevels(gray, w, h, (2 + p.smooth / 100 * 5) * sc, nB);
+    labelComponents(lv, w, h, nB, Math.max(6, Math.round((0.00004 + 0.0008 * p.clean / 100) * w * h)), true);
+    res.layers = [{ name: 'Contornos', ink: lineInk }].concat(toneBandLayers(lv, w, h, nB, Math.max(1.5, p.thick * 0.75 * sc)));
+  }
+  return res;
 }

@@ -63,9 +63,15 @@
     <button class="chip on" data-view="decalque">Decalque</button>
     <button class="chip" data-view="original">Original</button>
     <button class="chip" data-view="sobrepor">Sobrepor</button>
+    <button class="chip" data-view="comparar">Comparar</button>
   </div>
   <div id="stage">
     <canvas id="view"></canvas>
+    <div class="stagetools">
+      <button id="btnUndo" aria-label="Desfazer" disabled>↶</button>
+      <button id="btnRedo" aria-label="Refazer" disabled>↷</button>
+      <button id="btnPaint" aria-label="Modo pintura">⛶</button>
+    </div>
     <div id="spin" class="hidden"></div>
     <div class="sizeinfo" id="sizeInfo"></div>
   </div>
@@ -177,6 +183,7 @@
         <select id="deliver"><option value="share">Compartilhar / imprimir</option><option value="download">Baixar o arquivo</option></select></div>
       <button class="btn solid full" id="exPng">Imagem (PNG)</button>
       <button class="btn solid full" id="exPdfA4">PDF A4 (a imagem inteira numa folha)</button>
+      <button class="btn solid full" id="exLayers" data-modes="contorno,sombras">Camadas por tom, para pintar em etapas (PDF)</button>
       <button class="btn solid full" id="exPdfTiles">PDF em tamanho real (várias folhas A4)</button>
       <p class="hint" id="tilesInfo"></p>
       <div class="row"><label>Sobreposição</label><input type="number" id="overlap" min="0.5" max="3" step="0.5" value="1"> <span class="hint" style="margin:0">cm entre folhas</span></div>
@@ -193,11 +200,22 @@
 <div id="busy" class="busy hidden"><div class="spin"></div><p id="busyMsg">Processando…</p></div>
 <div id="toast"></div>
 
+<div id="paint" class="paint hidden">
+  <canvas id="paintCv"></canvas>
+  <div class="ptools" id="ptools">
+    <button data-pv="decalque">Decalque</button>
+    <button data-pv="original">Original</button>
+    <button data-pv="sobrepor">Sobrepor</button>
+    <button id="pFit">Ajustar</button>
+    <button id="pExit">Sair</button>
+  </div>
+</div>
 <div class="uiz" id="uiz"><button id="uiMinus" aria-label="Diminuir interface">A−</button><button id="uiPlus" aria-label="Aumentar interface">A+</button></div>
 <div id="egg" class="egg hidden" role="dialog" aria-label="Surpresa">
   <div class="stars" id="eggStars"></div>
-  <p class="q">“There you are. I’ve been looking for you.”</p>
+  <p class="q" id="eggQ">“There you are. I’ve been looking for you.”</p>
   <div class="orn">✦</div>
+  <small class="src" id="eggSrc">ACOTAR</small>
   <small>toque para fechar</small>
 </div>
 
