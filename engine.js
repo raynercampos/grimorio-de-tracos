@@ -73,8 +73,56 @@ function toGray(rgba, w, h) {
   return g;
 }
 
+/* ---------- suavização que preserva bordas (ignora textura) ---------- */
+function bilateral(src, w, h, radius, sigmaR, passes) {
+  var r = Math.max(1, Math.round(radius)), stride = Math.max(1, Math.round(r / 4)), n = w * h;
+  var cur = Float32Array.from(src), out = new Float32Array(n), p, x, y, dx, dy, i, j;
+  var inv = 1 / (2 * sigmaR * sigmaR), sS = 1 / (2 * (r * 0.6) * (r * 0.6));
+  for (p = 0; p < passes; p++) {
+    for (y = 0; y < h; y++) {
+      for (x = 0; x < w; x++) {
+        i = y * w + x; var c = cur[i], sum = 0, ws = 0;
+        for (dy = -r; dy <= r; dy += stride) {
+          var yy = y + dy; if (yy < 0 || yy >= h) continue;
+          for (dx = -r; dx <= r; dx += stride) {
+            var xx = x + dx; if (xx < 0 || xx >= w) continue;
+            j = yy * w + xx; var d = cur[j] - c;
+            var wt = Math.exp(-(d * d) * inv - (dx * dx + dy * dy) * sS);
+            sum += wt * cur[j]; ws += wt;
+          }
+        }
+        out[i] = sum / ws;
+      }
+    }
+    var t = cur; cur = out; out = t;
+  }
+  return cur;
+}
+
+/* ---------- remove traços onde há excesso de linhas (evita embolar) ---------- */
+function edgeDensityCull(edges, w, h, sigma, thr) {
+  var n = w * h, f = new Float32Array(n), i;
+  for (i = 0; i < n; i++) f[i] = edges[i] ? 1 : 0;
+  var d = blurGray(f, w, h, sigma);
+  for (i = 0; i < n; i++) {
+    if (!edges[i]) continue;
+    if (d[i] > thr * 1.7) edges[i] = 0;
+    else if (d[i] > thr && edges[i] < 2) edges[i] = 0;
+  }
+  return edges;
+}
+
+/* ---------- arredonda e fecha pequenas falhas no traço ---------- */
+function smoothMask(mask, w, h, sigma, thr) {
+  var n = w * h, f = new Float32Array(n), i;
+  for (i = 0; i < n; i++) f[i] = mask[i] ? 1 : 0;
+  var b = blurGray(f, w, h, sigma), out = new Uint8Array(n);
+  for (i = 0; i < n; i++) out[i] = b[i] > thr ? 1 : 0;
+  return out;
+}
+
 /* ---------- bordas (Canny) ---------- */
-function canny(gray, w, h, sigma, keepFrac) {
+function canny(gray, w, h, sigma, keepFrac, minC, loRatio) {
   var g = blurGray(gray, w, h, sigma);
   var n = w * h, mag = new Float32Array(n), dir = new Uint8Array(n), maxm = 0;
   var x, y, i;
@@ -106,9 +154,9 @@ function canny(gray, w, h, sigma, keepFrac) {
   }
   var target = cnt * keepFrac, cum = 0, bin = BINS - 1;
   for (; bin > 0; bin--) { cum += hist[bin]; if (cum >= target) break; }
-  var hi = Math.max((bin / BINS) * maxm, 0.03), lo = hi * 0.5;
+  var hi = Math.max((bin / BINS) * maxm, 0.03, (minC || 0) * 0.3 * maxm), lo = hi * (loRatio || 0.5);
   var stack = new Int32Array(n), sp = 0;
-  for (i = 0; i < n; i++) if (nms[i] >= hi) { out[i] = 1; stack[sp++] = i; }
+  for (i = 0; i < n; i++) if (nms[i] >= hi) { out[i] = 2; stack[sp++] = i; }
   while (sp > 0) {
     i = stack[--sp];
     x = i % w; y = (i / w) | 0;
@@ -448,12 +496,24 @@ function regionsEngine(rgba, w, h, p) {
 function runPipeline(rgba, w, h, p) {
   var sc = Math.max(w, h) / 1000;
   if (p.mode === 'manchas') return regionsEngine(rgba, w, h, p);
-  var gray = toGray(rgba, w, h), sigma = (0.8 + p.smooth / 100 * 3.2) * sc, minLen = (4 + p.clean * 0.55) * sc;
+  var gray = toGray(rgba, w, h);
+  var tx = (p.texture === undefined ? 40 : p.texture) / 100;
+  if (tx > 0) gray = bilateral(gray, w, h, (1.5 + 5 * tx) * sc, 0.04 + 0.16 * tx, tx > 0.6 ? 2 : 1);
+  var sigma = (0.8 + p.smooth / 100 * 3.2) * sc, minLen = (4 + p.clean * 0.55) * sc;
   if (p.mode === 'esboco') {
     return { w: w, h: h, ink: sketchInk(gray, w, h, (0.9 + p.smooth / 100 * 2.2) * sc, p.detail, minLen * 2.2) };
   }
   var keep = 0.05 + 0.5 * (p.detail / 100);
-  var edges = canny(gray, w, h, sigma, keep);
+  var lk = (p.link === undefined ? 50 : p.link) / 100;
+  var edges = canny(gray, w, h, sigma, keep, (p.contrast === undefined ? 25 : p.contrast) / 100, 0.72 - 0.47 * lk);
+  var dn = (p.density === undefined ? 55 : p.density) / 100;
+  if (dn > 0) edgeDensityCull(edges, w, h, 9 * sc, 0.105 - 0.065 * dn);
+  for (var q = 0; q < edges.length; q++) edges[q] = edges[q] ? 1 : 0;
+  var rd = (p.round === undefined ? 35 : p.round) / 100;
+  if (rd > 0) {
+    var rs = (0.5 + 1.3 * rd) * sc;
+    edges = smoothMask(edges, w, h, rs, Math.min(0.4, 0.3 / Math.max(rs, 0.75)));
+  }
   removeSmall(edges, w, h, minLen);
   var ink = maskToInk(edges, w, h, p.thick * sc);
   if (p.mode === 'sombras') {

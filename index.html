@@ -47,12 +47,9 @@
     <button class="big main" id="btnCam"><svg class="ti"><use href="#i-cam"/></svg><span>Capturar uma imagem<small>Abre a câmera do celular</small></span></button>
     <button class="big" id="btnGal"><svg class="ti"><use href="#i-img"/></svg><span>Escolher da galeria<small>Foto ou imagem salva no aparelho</small></span></button>
     <button class="big" id="btnPaste"><svg class="ti"><use href="#i-clip"/></svg><span>Colar imagem<small>Imagem copiada da internet</small></span></button>
-    <button class="big hidden" id="btnInstall"><svg class="ti"><use href="#i-dl"/></svg><span>Instalar o app<small>Adiciona à tela inicial</small></span></button>
   </div>
   <h2>Meu grimório</h2>
   <div id="gallery"></div>
-  <details class="tip" id="installHelp"><summary>Não conseguiu instalar no celular? Toque aqui</summary><div id="installBody"></div></details>
-  <div class="tip"><b>Dica:</b> na internet, toque na imagem, escolha <b>Compartilhar</b> e selecione <b>Grimório de Traços</b>. Ela abre direto aqui, pronta para decalcar.</div>
 </main>
 
 <!-- ===== EDITOR ===== -->
@@ -123,13 +120,18 @@
     <!-- Ajustes -->
     <section class="panel" id="p-ajustes">
       <div class="row" data-modes="contorno,esboco,sombras"><label>Detalhe</label><input type="range" data-p="detail" min="0" max="100"><output></output></div>
+      <div class="row" data-modes="contorno,esboco,sombras"><label>Ignorar textura</label><input type="range" data-p="texture" min="0" max="100"><output></output></div>
+      <div class="row" data-modes="contorno,sombras"><label>Contraste mínimo</label><input type="range" data-p="contrast" min="0" max="100"><output></output></div>
       <div class="row" data-modes="manchas"><label>Nº de cores</label><input type="range" data-p="k" min="3" max="24"><output></output></div>
       <div class="row" data-modes="sombras"><label>Nº de tons</label><input type="range" data-p="tones" min="2" max="6"><output></output></div>
       <div class="row" data-modes="sombras"><label>Sombra em</label>
         <select data-p="toneStyle"><option value="hachura">Hachura (riscos)</option><option value="manchas">Manchas de cinza</option></select></div>
       <div class="row"><label>Suavização</label><input type="range" data-p="smooth" min="0" max="100"><output></output></div>
       <div class="row"><label>Limpeza</label><input type="range" data-p="clean" min="0" max="100"><output></output></div>
-      <div class="row" data-modes="contorno,sombras,manchas"><label>Espessura</label><input type="range" data-p="thick" min="1" max="8" step="0.5"><output></output></div>
+      <div class="row" data-modes="contorno,sombras"><label>Evitar emboloar</label><input type="range" data-p="density" min="0" max="100"><output></output></div>
+      <div class="row" data-modes="contorno,sombras"><label>Continuidade</label><input type="range" data-p="link" min="0" max="100"><output></output></div>
+      <div class="row" data-modes="contorno,sombras"><label>Arredondar traço</label><input type="range" data-p="round" min="0" max="100"><output></output></div>
+      <div class="row" data-modes="contorno,sombras,manchas"><label>Espessura</label><input type="range" data-p="thick" min="0.5" max="8" step="0.25"><output></output></div>
       <div class="group">
         <div class="row"><label>Cor do traço</label>
           <select data-p="ink">

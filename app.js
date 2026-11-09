@@ -3,19 +3,21 @@
 var $ = function (id) { return document.getElementById(id); };
 
 var DEF = {
-  mode: 'contorno', detail: 50, smooth: 35, clean: 30, thick: 2, tones: 3, toneStyle: 'hachura', k: 10,
+  mode: 'contorno', detail: 35, smooth: 45, clean: 45, thick: 2, tones: 3, toneStyle: 'hachura', k: 10,
+  texture: 65, contrast: 40, density: 50, link: 60, round: 40,
   ink: '#111111', inkOpacity: 100, invert: false, mirror: false, transparent: false,
   fill: 'nenhum', numbers: true,
   grid: false, gridCell: 5, gridColor: '#cc2222', gridOpacity: 60, gridLabels: true
 };
-var HEAVY = ['mode', 'detail', 'smooth', 'clean', 'thick', 'tones', 'toneStyle', 'k'];
+var HEAVY = ['mode', 'detail', 'smooth', 'clean', 'thick', 'tones', 'toneStyle', 'k', 'texture', 'contrast', 'density', 'link', 'round'];
 var SIZES = [[20, 30], [24, 30], [30, 40], [40, 50], [50, 70], [60, 80], [70, 100], [80, 100], [30, 30], [40, 40], [50, 50], [60, 60], [21, 29.7, 'A4'], [29.7, 42, 'A3']];
 var BUILTIN_PRESETS = {
-  'Silhueta limpa': { mode: 'contorno', detail: 35, smooth: 45, clean: 45, thick: 2 },
-  'Silhueta detalhada': { mode: 'contorno', detail: 70, smooth: 25, clean: 25, thick: 1.5 },
+  'Silhueta limpa': { mode: 'contorno', detail: 35, smooth: 45, clean: 45, thick: 2, texture: 65, contrast: 40, density: 50, link: 60, round: 40 },
+  'Silhueta detalhada': { mode: 'contorno', detail: 45, smooth: 40, clean: 40, thick: 1.75, texture: 55, contrast: 30, density: 40, link: 60, round: 40 },
+  'Silhueta só do principal': { mode: 'contorno', detail: 25, smooth: 55, clean: 60, thick: 2.5, texture: 80, contrast: 50, density: 60, link: 65, round: 55 },
   'Carvão': { mode: 'esboco', detail: 55, smooth: 35, clean: 30 },
-  'Sombras em hachura': { mode: 'sombras', detail: 45, smooth: 40, clean: 40, thick: 2, tones: 3, toneStyle: 'hachura' },
-  'Sombras em manchas': { mode: 'sombras', detail: 45, smooth: 45, clean: 45, thick: 2, tones: 4, toneStyle: 'manchas' },
+  'Sombras em hachura': { mode: 'sombras', detail: 45, smooth: 40, clean: 40, thick: 2, tones: 3, toneStyle: 'hachura', texture: 55, contrast: 30, density: 60, link: 50, round: 40 },
+  'Sombras em manchas': { mode: 'sombras', detail: 45, smooth: 45, clean: 45, thick: 2, tones: 4, toneStyle: 'manchas', texture: 55, contrast: 30, density: 60, link: 50, round: 40 },
   'Vitral (12 cores)': { mode: 'manchas', k: 12, smooth: 40, clean: 40, thick: 1.5, numbers: true, fill: 'nenhum' },
   'Vitral simples (5 cores)': { mode: 'manchas', k: 5, smooth: 55, clean: 60, thick: 2.5, numbers: false, fill: 'cores' }
 };
@@ -38,7 +40,7 @@ function nextFrame() { return new Promise(function (r) { setTimeout(r, 30); }); 
 function fileBase() { return (S.name || 'grimorio').replace(/[^\w\-áéíóúâêôãõç ]+/gi, '').trim().replace(/\s+/g, '-') || 'decalque'; }
 
 /* ---------- worker ---------- */
-var WORKER_FUNCS = ['gaussKernel', 'blurDirect', 'boxesForGauss', 'boxPass', 'blurGray', 'toGray', 'canny', 'removeSmall', 'dilate',
+var WORKER_FUNCS = ['bilateral', 'edgeDensityCull', 'smoothMask', 'gaussKernel', 'blurDirect', 'boxesForGauss', 'boxPass', 'blurGray', 'toGray', 'canny', 'removeSmall', 'dilate',
   'maskToInk', 'sketchInk', 'modeFilter', 'labelComponents', 'distToBoundary', 'toneLevels', 'toneInk', 'srgb2lab', 'kmeansLab',
   'regionsEngine', 'runPipeline'];
 var worker = null, wBusy = false, wQueue = [], wCur = null, wId = 0;
@@ -402,8 +404,26 @@ function setTab(t) {
   if (t === 'exportar') updateTilesInfo();
   render();
 }
+function addNudges() {
+  document.querySelectorAll('input[type=range][data-p]').forEach(function (el) {
+    if (el.dataset.nudged) return; el.dataset.nudged = '1';
+    var step = +el.step || 1;
+    function mk(txt, dir) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'nudge'; b.textContent = txt;
+      b.setAttribute('aria-label', dir < 0 ? 'Diminuir' : 'Aumentar');
+      b.addEventListener('click', function () {
+        var v = Math.min(+el.max, Math.max(+el.min, (+el.value) + dir * step));
+        el.value = v; el.dispatchEvent(new Event('input'));
+      });
+      return b;
+    }
+    el.parentElement.insertBefore(mk('−', -1), el);
+    el.parentElement.insertBefore(mk('+', 1), el.nextSibling);
+  });
+}
 function bindUI() {
   fillSizeSelect();
+  addNudges();
   document.querySelectorAll('[data-p]').forEach(function (el) {
     var k = el.dataset.p, ev = el.type === 'range' ? 'input' : 'change';
     el.addEventListener(ev, function () {
@@ -648,29 +668,6 @@ async function loadGallery() {
 }
 
 /* ---------- início, atalhos e PWA ---------- */
-function fillInstallHelp() {
-  var ua = navigator.userAgent, html = '';
-  var standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
-  var inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|MicroMessenger|Telegram|; wv\)/i.test(ua);
-  var samsung = /SamsungBrowser/i.test(ua), firefox = /Firefox|FxiOS/i.test(ua), ios = /iPhone|iPad|iPod/i.test(ua);
-  var chrome = /Chrome\//i.test(ua) && !samsung && !/EdgA|OPR|Edg\//i.test(ua) && !inApp;
-  var st;
-  if (standalone) st = 'O app já está aberto no modo instalado.';
-  else if (window.__canInstall) st = 'Este navegador permite instalar. Use o botão "Instalar o app" acima.';
-  else if (inApp) st = 'Você abriu o link dentro de outro aplicativo (WhatsApp, Instagram etc.). Ele não instala apps.';
-  else if (ios) st = 'No iPhone a instalação é feita pelo Safari.';
-  else if (firefox) st = 'O Firefox não instala este tipo de app. Use o Chrome.';
-  else if (samsung) st = 'Você está no Samsung Internet.';
-  else if (chrome) st = 'Chrome detectado, mas ele ainda não liberou o botão de instalar.';
-  else st = 'Navegador não identificado como Chrome.';
-  html += '<p class="st">' + st + '</p>';
-  html += '<p><b>Chrome (Android):</b> toque nos três pontinhos ⋮ no canto superior → <b>Instalar app</b>. Se aparecer só <b>Adicionar à tela inicial</b>, toque nela e depois em <b>Instalar</b>.</p>';
-  html += '<p><b>Link aberto no WhatsApp/Instagram:</b> toque em ⋮ → <b>Abrir no Chrome</b> (ou copie o endereço e cole no Chrome).</p>';
-  html += '<p><b>Samsung Internet:</b> menu ≡ → <b>Adicionar página a</b> → <b>Tela inicial</b>.</p>';
-  html += '<p><b>iPhone (Safari):</b> botão Compartilhar → <b>Adicionar à Tela de Início</b>.</p>';
-  html += '<p>Se nada disso aparecer, atualize o Chrome na Play Store, feche a aba, abra o endereço de novo e espere uns 10 segundos antes de abrir o menu.</p>';
-  $('installBody').innerHTML = html;
-}
 function applyUiScale(p) {
   p = Math.max(90, Math.min(190, p));
   document.documentElement.style.setProperty('--ui', p + '%');
@@ -713,13 +710,6 @@ function bindHome() {
   $('btnSave').addEventListener('click', function () { saveProject(false); });
   window.addEventListener('popstate', function () { if (!$('editor').classList.contains('hidden')) closeEditor(true); });
 
-  var deferred = null;
-  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; window.__canInstall = true; $('btnInstall').classList.remove('hidden'); });
-  $('installHelp').addEventListener('toggle', function () { if ($('installHelp').open) fillInstallHelp(); });
-  $('btnInstall').addEventListener('click', async function () {
-    if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; $('btnInstall').classList.add('hidden');
-  });
-  window.addEventListener('appinstalled', function () { $('btnInstall').classList.add('hidden'); });
 }
 async function checkShared() {
   if (location.search.indexOf('shared=1') < 0) return;
