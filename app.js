@@ -576,12 +576,11 @@ function bindExport() {
 
 /* ---------- projetos e galeria ---------- */
 var EGGS = [
-  { q: '“There you are. I’ve been looking for you.”', s: 'ACOTAR' },
-  { q: '“We need hope, or else we cannot endure.”', s: 'ACOTAR' },
-  { q: '“To the stars who listen.”', s: 'ACOTAR' },
-  { q: '“I was a survivor, and I was strong.”', s: 'ACOTAR' },
-  { q: '“Be glad of your human heart.”', s: 'ACOTAR' },
-  { q: 'Velaris, the City of Starlight.', s: 'ACOTAR' },
+  { q: '“There you are. I’ve been looking for you.”', s: 'A Court of Thorns and Roses' },
+  { q: '“We need hope, or else we cannot endure.”', s: 'A Court of Thorns and Roses' },
+  { q: '“Be glad of your human heart.”', s: 'A Court of Thorns and Roses' },
+  { q: '“I was a survivor, and I was strong.”', s: 'A Court of Mist and Fury' },
+  { q: '“To the stars who listen.”', s: 'A Court of Mist and Fury' },
   { q: 'O Suriel só diz a verdade a quem for esperto o bastante para prendê-lo.', s: 'homenagem ao Suriel · não é citação do livro' }
 ];
 var EGG_QUOTE = EGGS[0].q;
