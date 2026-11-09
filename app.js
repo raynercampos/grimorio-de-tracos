@@ -587,10 +587,10 @@ var EGGS = [
 var EGG_QUOTE = EGGS[0].q;
 function pickEgg(random) {
   var i = 0;
-  try { i = parseInt(localStorage.getItem('grimorio.egg'), 10) || 0; } catch (e) { }
+  try { i = parseInt(localStorage.getItem('grimorio.egg2'), 10) || 0; } catch (e) { }
   if (random) return EGGS[Math.floor(Math.random() * EGGS.length)];
   i = ((i % EGGS.length) + EGGS.length) % EGGS.length;
-  try { localStorage.setItem('grimorio.egg', String(i + 1)); } catch (e) { }
+  try { localStorage.setItem('grimorio.egg2', String(i + 1)); } catch (e) { }
   return EGGS[i];
 }
 function greeting() {
