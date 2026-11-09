@@ -671,6 +671,19 @@ function fillInstallHelp() {
   html += '<p>Se nada disso aparecer, atualize o Chrome na Play Store, feche a aba, abra o endereço de novo e espere uns 10 segundos antes de abrir o menu.</p>';
   $('installBody').innerHTML = html;
 }
+function applyUiScale(p) {
+  p = Math.max(90, Math.min(190, p));
+  document.documentElement.style.setProperty('--ui', p + '%');
+  try { localStorage.setItem('grimorio.ui', String(p)); } catch (e) {}
+  return p;
+}
+function bindUiScale() {
+  var p = 118;
+  try { p = parseInt(localStorage.getItem('grimorio.ui'), 10) || 118; } catch (e) {}
+  p = applyUiScale(p);
+  $('uiMinus').addEventListener('click', function () { p = applyUiScale(p - 10); });
+  $('uiPlus').addEventListener('click', function () { p = applyUiScale(p + 10); });
+}
 function bindHome() {
   $('btnCam').addEventListener('click', function () { $('fileCam').click(); });
   $('btnGal').addEventListener('click', function () { $('fileGal').click(); });
@@ -718,7 +731,7 @@ async function checkShared() {
   } catch (e) { toast('Não consegui abrir a imagem compartilhada.'); }
 }
 function init() {
-  loadLast(); bindUI(); bindExport(); bindHome(); bindEgg();
+  loadLast(); bindUI(); bindExport(); bindHome(); bindUiScale(); bindEgg();
   if (S.sizeKey !== 'custom' && S.sizeKey !== 'foto' && !SIZES.some(function (s) { return s[0] + 'x' + s[1] === S.sizeKey; })) S.sizeKey = '40x50';
   applySize(); syncUI(); loadGallery(); checkShared();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () { });
