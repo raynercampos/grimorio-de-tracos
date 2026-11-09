@@ -55,6 +55,11 @@ h2::before, h2::after { content: ""; flex: 1; height: 1px; background: var(--gol
 .empty { color: var(--muted); font-size: 15px; font-style: italic; text-align: center; }
 .tip { margin-top: 24px; padding: 13px 15px; background: var(--card); border: 1px dashed var(--gold-d); border-radius: 6px; font-size: 14px; color: var(--muted); }
 .tip b { color: var(--gold); font-weight: 400; }
+details.tip { margin-bottom: 12px; }
+details.tip summary { cursor: pointer; color: var(--gold); }
+#installBody { margin-top: 10px; font-size: 14px; line-height: 1.5; }
+#installBody p { margin: 6px 0; }
+#installBody .st { padding: 8px 10px; border: 1px solid var(--gold-d); border-radius: 6px; background: var(--bg); color: var(--ink); }
 
 /* ---------- editor ---------- */
 #editor { overflow: hidden; }

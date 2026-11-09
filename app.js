@@ -648,6 +648,29 @@ async function loadGallery() {
 }
 
 /* ---------- início, atalhos e PWA ---------- */
+function fillInstallHelp() {
+  var ua = navigator.userAgent, html = '';
+  var standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
+  var inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|MicroMessenger|Telegram|; wv\)/i.test(ua);
+  var samsung = /SamsungBrowser/i.test(ua), firefox = /Firefox|FxiOS/i.test(ua), ios = /iPhone|iPad|iPod/i.test(ua);
+  var chrome = /Chrome\//i.test(ua) && !samsung && !/EdgA|OPR|Edg\//i.test(ua) && !inApp;
+  var st;
+  if (standalone) st = 'O app já está aberto no modo instalado.';
+  else if (window.__canInstall) st = 'Este navegador permite instalar. Use o botão "Instalar o app" acima.';
+  else if (inApp) st = 'Você abriu o link dentro de outro aplicativo (WhatsApp, Instagram etc.). Ele não instala apps.';
+  else if (ios) st = 'No iPhone a instalação é feita pelo Safari.';
+  else if (firefox) st = 'O Firefox não instala este tipo de app. Use o Chrome.';
+  else if (samsung) st = 'Você está no Samsung Internet.';
+  else if (chrome) st = 'Chrome detectado, mas ele ainda não liberou o botão de instalar.';
+  else st = 'Navegador não identificado como Chrome.';
+  html += '<p class="st">' + st + '</p>';
+  html += '<p><b>Chrome (Android):</b> toque nos três pontinhos ⋮ no canto superior → <b>Instalar app</b>. Se aparecer só <b>Adicionar à tela inicial</b>, toque nela e depois em <b>Instalar</b>.</p>';
+  html += '<p><b>Link aberto no WhatsApp/Instagram:</b> toque em ⋮ → <b>Abrir no Chrome</b> (ou copie o endereço e cole no Chrome).</p>';
+  html += '<p><b>Samsung Internet:</b> menu ≡ → <b>Adicionar página a</b> → <b>Tela inicial</b>.</p>';
+  html += '<p><b>iPhone (Safari):</b> botão Compartilhar → <b>Adicionar à Tela de Início</b>.</p>';
+  html += '<p>Se nada disso aparecer, atualize o Chrome na Play Store, feche a aba, abra o endereço de novo e espere uns 10 segundos antes de abrir o menu.</p>';
+  $('installBody').innerHTML = html;
+}
 function bindHome() {
   $('btnCam').addEventListener('click', function () { $('fileCam').click(); });
   $('btnGal').addEventListener('click', function () { $('fileGal').click(); });
@@ -678,7 +701,8 @@ function bindHome() {
   window.addEventListener('popstate', function () { if (!$('editor').classList.contains('hidden')) closeEditor(true); });
 
   var deferred = null;
-  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; $('btnInstall').classList.remove('hidden'); });
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; window.__canInstall = true; $('btnInstall').classList.remove('hidden'); });
+  $('installHelp').addEventListener('toggle', function () { if ($('installHelp').open) fillInstallHelp(); });
   $('btnInstall').addEventListener('click', async function () {
     if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; $('btnInstall').classList.add('hidden');
   });
