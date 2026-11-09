@@ -586,10 +586,10 @@ var EGGS = [
 var EGG_QUOTE = EGGS[0].q;
 function pickEgg(random) {
   var i = 0;
-  try { i = parseInt(localStorage.getItem('grimorio.egg2'), 10) || 0; } catch (e) { }
+  try { i = parseInt(localStorage.getItem('grimorio.egg3'), 10) || 0; } catch (e) { }
   if (random) return EGGS[Math.floor(Math.random() * EGGS.length)];
   i = ((i % EGGS.length) + EGGS.length) % EGGS.length;
-  try { localStorage.setItem('grimorio.egg2', String(i + 1)); } catch (e) { }
+  try { localStorage.setItem('grimorio.egg3', String(i + 1)); } catch (e) { }
   return EGGS[i];
 }
 function greeting() {
@@ -598,7 +598,7 @@ function greeting() {
 }
 function showEgg(random) {
   var egg = $('egg'), box = $('eggStars'), ev = pickEgg(random);
-  $('eggQ').textContent = ev.q; $('eggWho').textContent = ev.w; $('eggSrc').textContent = ev.s;
+  $('eggQ').textContent = ev.q;
   $('eggScene').innerHTML = window.EGG_SCENES && EGG_SCENES[ev.k] ? EGG_SCENES[ev.k]() : '';
   box.style.display = ev.k === 'esperanca' || ev.k === 'montanha' || ev.k === 'suriel' ? 'none' : '';
   if (!box.firstChild) {
