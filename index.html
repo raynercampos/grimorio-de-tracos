@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2c6e69">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Decalquei</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===== INÍCIO ===== -->
+<main id="home" class="screen">
+  <h1>Decalquei</h1>
+  <p class="sub">Transforma qualquer foto em um decalque simplificado para pintar em tela.</p>
+  <div class="bigbtns">
+    <button class="big" id="btnCam"><span class="ic">📷</span><span>Tirar uma foto<small>Abre a câmera do celular</small></span></button>
+    <button class="big alt" id="btnGal"><span class="ic">🖼️</span><span>Escolher da galeria<small>Foto ou imagem salva no aparelho</small></span></button>
+    <button class="big alt" id="btnPaste"><span class="ic">📋</span><span>Colar imagem<small>Imagem copiada da internet</small></span></button>
+    <button class="big alt hidden" id="btnInstall"><span class="ic">⬇️</span><span>Instalar o app<small>Adiciona à tela inicial</small></span></button>
+  </div>
+  <h2>Meus decalques</h2>
+  <div id="gallery"></div>
+  <div class="tip"><b>Dica:</b> na internet, toque na imagem, escolha <b>Compartilhar</b> e selecione <b>Decalquei</b>. Ela abre direto aqui, pronta para decalcar.</div>
+</main>
+
+<!-- ===== EDITOR ===== -->
+<main id="editor" class="screen hidden">
+  <div class="topbar">
+    <button class="iconbtn" id="btnBack" aria-label="Voltar">←</button>
+    <input id="projName" type="text" placeholder="Nome do decalque" maxlength="60">
+    <button class="pill" id="btnSave">Salvar</button>
+  </div>
+  <div class="viewbar">
+    <button class="chip on" data-view="decalque">Decalque</button>
+    <button class="chip" data-view="original">Original</button>
+    <button class="chip" data-view="sobrepor">Sobrepor</button>
+  </div>
+  <div id="stage">
+    <canvas id="view"></canvas>
+    <div id="spin" class="hidden"></div>
+    <div class="sizeinfo" id="sizeInfo"></div>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab on" data-tab="recorte"><b>✂️</b>Recorte</button>
+    <button class="tab" data-tab="estilo"><b>🖋️</b>Estilo</button>
+    <button class="tab" data-tab="ajustes"><b>🎚️</b>Ajustes</button>
+    <button class="tab" data-tab="grade"><b>▦</b>Grade</button>
+    <button class="tab" data-tab="exportar"><b>🖨️</b>Exportar</button>
+  </nav>
+
+  <div id="panels">
+    <!-- Recorte -->
+    <section class="panel on" id="p-recorte">
+      <div class="row"><label>Tamanho da tela</label>
+        <select id="sizePreset"></select></div>
+      <div class="row" id="customSize">
+        <label>Medidas (cm)</label>
+        <input type="number" id="wcm" min="5" max="300" step="0.5" inputmode="decimal"> ×
+        <input type="number" id="hcm" min="5" max="300" step="0.5" inputmode="decimal">
+      </div>
+      <div class="row hidden" id="photoSize"><label>Lado maior (cm)</label>
+        <input type="number" id="longcm" min="10" max="300" step="1" inputmode="decimal" value="50"></div>
+      <div class="row"><label>Ampliar</label>
+        <input type="range" id="zoom" min="1" max="6" step="0.01" value="1"><output id="zoomOut">1×</output></div>
+      <div class="btns">
+        <button class="btn" id="btnSwap">↔ Deitar / levantar</button>
+        <button class="btn" id="btnRot">⟳ Girar foto</button>
+        <button class="btn" id="btnCenter">⌖ Centralizar</button>
+      </div>
+      <p class="hint">Arraste a imagem para mover e use dois dedos (ou o controle acima) para ampliar. A moldura segue a proporção da tela.</p>
+    </section>
+
+    <!-- Estilo -->
+    <section class="panel" id="p-estilo">
+      <div class="modes" id="modeBtns">
+        <button class="mode on" data-mode="contorno"><b>Contorno</b><small>Linhas finas e limpas dos limites das formas</small></button>
+        <button class="mode" data-mode="esboco"><b>Esboço a lápis</b><small>Traço solto, estilo desenho</small></button>
+        <button class="mode" data-mode="sombras"><b>Contorno + sombras</b><small>Linhas com hachura ou manchas de tom</small></button>
+        <button class="mode" data-mode="manchas"><b>Manchas e números</b><small>Pintura por números com paleta</small></button>
+      </div>
+      <div class="group">
+        <div class="row"><label>Modelos salvos</label><select id="presetSel"></select></div>
+        <div class="btns">
+          <button class="btn" id="presetSave">Salvar ajustes como modelo</button>
+          <button class="btn" id="presetDel">Excluir modelo</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ajustes -->
+    <section class="panel" id="p-ajustes">
+      <div class="row" data-modes="contorno,esboco,sombras"><label>Detalhe</label><input type="range" data-p="detail" min="0" max="100"><output></output></div>
+      <div class="row" data-modes="manchas"><label>Nº de cores</label><input type="range" data-p="k" min="3" max="24"><output></output></div>
+      <div class="row" data-modes="sombras"><label>Nº de tons</label><input type="range" data-p="tones" min="2" max="6"><output></output></div>
+      <div class="row" data-modes="sombras"><label>Sombra em</label>
+        <select data-p="toneStyle"><option value="hachura">Hachura (riscos)</option><option value="manchas">Manchas de cinza</option></select></div>
+      <div class="row"><label>Suavização</label><input type="range" data-p="smooth" min="0" max="100"><output></output></div>
+      <div class="row"><label>Limpeza</label><input type="range" data-p="clean" min="0" max="100"><output></output></div>
+      <div class="row" data-modes="contorno,sombras,manchas"><label>Espessura</label><input type="range" data-p="thick" min="1" max="8" step="0.5"><output></output></div>
+      <div class="group">
+        <div class="row"><label>Cor do traço</label>
+          <select data-p="ink">
+            <option value="#111111">Preto</option><option value="#4a4a4a">Grafite</option>
+            <option value="#9a9a9a">Cinza claro</option><option value="#1f4e8c">Azul</option>
+            <option value="#7a4a22">Sépia</option><option value="#a32020">Vermelho</option>
+          </select></div>
+        <div class="row"><label>Intensidade</label><input type="range" data-p="inkOpacity" min="20" max="100"><output></output></div>
+        <div class="row" data-modes="manchas"><label>Preenchimento</label>
+          <select data-p="fill"><option value="nenhum">Só linhas (para imprimir)</option><option value="cores">Cores da foto</option><option value="cinza">Tons de cinza</option></select></div>
+        <label class="check" data-modes="manchas"><input type="checkbox" data-p="numbers"> Mostrar números nas manchas</label>
+        <label class="check"><input type="checkbox" data-p="invert"> Inverter (linhas claras em fundo escuro)</label>
+        <label class="check"><input type="checkbox" data-p="mirror"> Espelhar horizontalmente</label>
+        <label class="check"><input type="checkbox" data-p="transparent"> PNG com fundo transparente</label>
+      </div>
+    </section>
+
+    <!-- Grade -->
+    <section class="panel" id="p-grade">
+      <label class="check"><input type="checkbox" data-p="grid"> Mostrar quadriculado sobre o decalque</label>
+      <div class="row"><label>Quadrado de</label>
+        <select data-p="gridCell">
+          <option value="1">1 cm</option><option value="2">2 cm</option><option value="2.5">2,5 cm</option>
+          <option value="3">3 cm</option><option value="4">4 cm</option><option value="5">5 cm</option>
+          <option value="8">8 cm</option><option value="10">10 cm</option>
+        </select></div>
+      <div class="row"><label>Cor</label>
+        <select data-p="gridColor"><option value="#cc2222">Vermelho</option><option value="#1f4e8c">Azul</option><option value="#222222">Preto</option><option value="#8a8a8a">Cinza</option></select></div>
+      <div class="row"><label>Intensidade</label><input type="range" data-p="gridOpacity" min="15" max="100"><output></output></div>
+      <label class="check"><input type="checkbox" data-p="gridLabels"> Letras (colunas) e números (linhas)</label>
+      <p class="hint">Use o mesmo quadriculado na tela (com régua e lápis) e copie quadrado por quadrado. A grade usa as medidas reais da tela.</p>
+    </section>
+
+    <!-- Exportar -->
+    <section class="panel" id="p-exportar">
+      <div class="row"><label>Qualidade</label>
+        <select id="quality">
+          <option value="1600">Rápida (1600 px)</option>
+          <option value="2800" selected>Alta (2800 px)</option>
+          <option value="3600">Máxima (3600 px)</option>
+        </select></div>
+      <div class="row"><label>Ao exportar</label>
+        <select id="deliver"><option value="share">Compartilhar / imprimir</option><option value="download">Baixar o arquivo</option></select></div>
+      <button class="btn solid full" id="exPng">🖼️ Imagem (PNG)</button>
+      <button class="btn solid full" id="exPdfA4">📄 PDF A4 (a imagem inteira numa folha)</button>
+      <button class="btn solid full" id="exPdfTiles">🧩 PDF em tamanho real (várias folhas A4)</button>
+      <p class="hint" id="tilesInfo"></p>
+      <div class="row"><label>Sobreposição</label><input type="number" id="overlap" min="0.5" max="3" step="0.5" value="1"> <span class="hint" style="margin:0">cm entre folhas</span></div>
+      <label class="check"><input type="checkbox" id="exLegend" checked> Incluir página de legenda (modo números)</label>
+      <div class="group">
+        <button class="btn full" id="exPalette">🎨 Paleta de cores da foto (PNG)</button>
+        <div class="sw" id="palette"></div>
+      </div>
+      <p class="hint">Na impressão, escolha <b>tamanho real / 100%</b> (nunca "ajustar à página").</p>
+    </section>
+  </div>
+</main>
+
+<div id="busy" class="busy hidden"><div class="spin"></div><p id="busyMsg">Processando…</p></div>
+<div id="toast"></div>
+<input type="file" id="fileCam" accept="image/*" capture="environment" hidden>
+<input type="file" id="fileGal" accept="image/*" hidden>
+
+<script src="engine.js"></script>
+<script src="export.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
